@@ -1,0 +1,142 @@
+plugins {
+    // The shadow gradle plugin assists with repackaging a 3rd-party library jar within your own jar
+    // In addition to ensuring that your end-users have the library available when they use your own thing,
+    // it also helps avoid collisions with other things that are also using the same library.
+    // ref: https://gist.github.com/SizableShrimp/949e7c219bfc94487a45226b64ac7749
+    //
+    // Latest Test Compatibility: gradle version 8.x shadow version 8.0.0+
+    // ref: https://github.com/johnrengelman/shadow
+    id "com.gradleup.shadow" version "8.3.5"
+}
+
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+loom {
+    accessWidenerPath = project(":common").loom.accessWidenerPath
+}
+
+configurations {
+    common
+    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+    common.canBeResolved = true
+    common.canBeConsumed = false
+    shadowCommon.canBeResolved = true
+    shadowCommon.canBeConsumed = false
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
+}
+
+dependencies {
+    modImplementation("net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}")
+    modImplementation("dev.architectury:architectury-fabric:${project.architectury_version}")
+
+    modImplementation("com.cobblemon:fabric:${property("cobblemon_version")}")
+    modImplementation("net.fabricmc:fabric-language-kotlin:${property("fabric-kotlin")}")
+    modImplementation("org.jetbrains.kotlin:kotlin-reflect:${property("kotlin")}")
+    modImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${property("kotlin")}")
+    modImplementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${property("kotlin")}")
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionFabric"))
+
+    // Kyori Adventure
+    shadowCommon("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
+    shadowCommon("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
+
+
+    // Database
+    shadowCommon("org.mongodb:mongodb-driver-sync:${property("mongodb_version")}") { transitive = true }
+    shadowCommon("org.xerial:sqlite-jdbc:${property("sqlite_version")}")
+
+    // Economy Vault
+    shadowCommon("com.github.MilkBowl:VaultAPI:${property("vault_api_version")}")
+
+    // Discord
+    shadowCommon("club.minnced:discord-webhooks:${property("discord_webhooks_version")}")
+    shadowCommon("org.json:json:20210307")
+    shadowCommon("net.objecthunter:exp4j:0.4.8")
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand Map.of(
+                "mod_name", project.property("mod_name"),
+                "mod_id", project.property("mod_id"),
+                "mod_version", project.property("mod_version"),
+                "mod_description", project.property("mod_description"),
+                "author", project.property("author"),
+                "repository", project.property("repository"),
+                "license", project.property("license"),
+                "mod_icon", project.property("mod_icon"),
+                "environment", project.property("environment"),
+                "supported_minecraft_versions", project.property("supported_minecraft_versions")
+        )
+    }
+}
+
+shadowJar {
+    // Excluir archivos innecesarios
+    exclude("architectury.common.json")
+    exclude("com/google/gson/**/*")
+    exclude("org/intellij/**/*")
+    exclude("org/jetbrains/**/*")
+    // Vault
+    exclude("org/bukkit/**/*")
+    exclude("org/apache/**/*")
+    exclude("org/yaml/**/*")
+    exclude("org/junit/**/*")
+    exclude("org/java_websocket/**/*")
+    exclude("org/hamcrest/**/*")
+    exclude("com/google/**/*")
+    exclude("org/slf4j/**/*")
+    exclude("org/sqlite/native/Linux-Android/**/*")
+    exclude("org/sqlite/native/Linux-Musl/**/*")
+    exclude("org/sqlite/native/FreeBSD/**/*")
+    exclude("org/sqlite/native/Mac/**/*")
+    exclude("org/sqlite/native/Solaris/**/*")
+    exclude("kotlin/**")
+    exclude("junit/**")
+    // Relocate packages
+    relocate("org.sqlite", "com.kingpixel.cobblesize.org.sqlite") {
+        exclude("org/sqlite/native/Linux-Android/**/*")
+        exclude("org/sqlite/native/Linux-Musl/**/*")
+        exclude("org/sqlite/native/FreeBSD/**/*")
+        exclude("org/sqlite/native/Mac/**/*")
+        exclude("org/sqlite/native/Solaris/**/*")
+    }
+    relocate("com.mongodb", "com.kingpixel.cobblesize.mongodb")
+    relocate("org.bson", "com.kingpixel.cobblesize.bson")
+
+    // Configuración del jar sombreado
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier = "dev-shadow" // Define el sufijo del archivo generado
+}
+
+remapJar {
+    injectAccessWidener = true
+    inputFile.set shadowJar.archiveFile
+    dependsOn shadowJar
+    archiveClassifier = null
+}
+
+jar {
+    archiveClassifier = "dev"
+}
+
+sourcesJar {
+    def commonSources = project(":common").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}

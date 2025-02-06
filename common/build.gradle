@@ -1,0 +1,29 @@
+architectury {
+    common("fabric")
+    common("neoforge")
+}
+
+loom {
+
+}
+
+dependencies {
+
+    modImplementation("com.cobblemon:fabric:${property("cobblemon_version")}")
+    // alL fabric dependencies:
+    modImplementation("net.fabricmc:fabric-loader:${property("fabric_loader_version")}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_version")}")
+    //modImplementation("net.neoforged:neoforge:${rootProject.neoforge_version}")
+
+    modImplementation("dev.architectury:architectury:${property("architectury_version")}")
+    modImplementation(file("libs/CobbleUtils-1.6.1-1.21.1-fabric-1.1.3-0cccf11.jar"))
+}
+
+test {
+    useJUnitPlatform()
+    // Since JDK 21
+    // ref: https://stackoverflow.com/questions/77951485/getting-a-java-agent-has-been-loaded-warning-in-intellij-after-upgrading-jdk-17
+    jvmArgs("-XX:+EnableDynamicAgentLoading")
+}
+
+

@@ -1,0 +1,33 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+#issueTrackerURL = ""
+license = "${license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+authors = "${author}"
+description = '''
+A mod that helps visually impaired players to play Minecraft.
+'''
+#logoFile = ""
+
+[[dependencies.cobblesize]]
+modId = "neoforge"
+versionRange = "[${neoforge_version},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.cobblesize]]
+modId = "minecraft"
+versionRange = "[1.21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.cobblesize]]
+modId = "cobblemon"
+type = "required"
+versionRange = "[1.6,)"
+ordering = "AFTER"
+side = "BOTH"
