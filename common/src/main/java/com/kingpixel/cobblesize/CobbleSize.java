@@ -1,8 +1,13 @@
 package com.kingpixel.cobblesize;
 
+import com.cobblemon.mod.common.Cobblemon;
+import com.cobblemon.mod.common.api.properties.CustomPokemonProperty;
+import com.kingpixel.cobblesize.Model.SizeChance;
 import com.kingpixel.cobblesize.command.CommandTree;
 import com.kingpixel.cobblesize.config.Config;
 import com.kingpixel.cobblesize.events.SpawnEvents;
+import com.kingpixel.cobblesize.properties.ScalePropertyType;
+import com.kingpixel.cobblesize.properties.SizePropertyType;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
@@ -14,7 +19,6 @@ public class CobbleSize {
   public static final String MOD_NAME = "CobbleSize";
   public static MinecraftServer server;
   public static Config config = new Config();
-
 
   public static void init() {
     events();
@@ -39,14 +43,14 @@ public class CobbleSize {
 
     LifecycleEvent.SERVER_STARTED.register(server -> {
       load();
-      //CustomPokemonProperty.Companion.register(SizePropertyType.getInstance());
-      //CustomPokemonProperty.Companion.register(ScalePropertyType.getInstance());
+      CustomPokemonProperty.Companion.register(SizePropertyType.getInstance());
+      CustomPokemonProperty.Companion.register(ScalePropertyType.getInstance());
     });
 
 
     PlayerEvent.PLAYER_JOIN.register(player -> {
-      //Cobblemon.INSTANCE.getStorage().getParty(player).forEach(SizeChance::solveSize);
-      //Cobblemon.INSTANCE.getStorage().getPC(player).forEach(SizeChance::solveSize);
+      Cobblemon.INSTANCE.getStorage().getParty(player).forEach(SizeChance::solveSize);
+      Cobblemon.INSTANCE.getStorage().getPC(player).forEach(SizeChance::solveSize);
     });
 
     SpawnEvents.register();
