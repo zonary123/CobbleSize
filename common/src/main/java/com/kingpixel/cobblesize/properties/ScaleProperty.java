@@ -3,36 +3,25 @@ package com.kingpixel.cobblesize.properties;
 import com.cobblemon.mod.common.api.properties.CustomPokemonProperty;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
-import com.kingpixel.cobblesize.CobbleSize;
-import com.kingpixel.cobblesize.Model.ScalePokemonData;
-import com.kingpixel.cobblesize.Model.SizeChanceWithoutItem;
+import com.kingpixel.cobblesize.Model.SizeChance;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Carlos Varas Alonso - 04/08/2024 19:40
  */
 public class ScaleProperty implements CustomPokemonProperty {
-  private Float value;
+  private final Float value;
 
   public ScaleProperty(String value) {
-    if (CobbleSize.config.isRandomsize()) {
-      if (value != null) {
-        this.value = Float.parseFloat(value);
-      } else {
-        this.value = 1.0f;
-      }
+    if (value != null) {
+      this.value = Float.parseFloat(value);
     } else {
       this.value = 1.0f;
     }
   }
 
   @Override public void apply(@NotNull PokemonEntity pokemonEntity) {
-    if (CobbleSize.config.isRandomsize()) {
-      SizeChanceWithoutItem scalePokemonData = ScalePokemonData.getScalePokemonData(pokemonEntity.getPokemon(), this.value);
-      scalePokemonData.apply(pokemonEntity.getPokemon());
-    } else {
-      pokemonEntity.getPokemon().setScaleModifier(1.0f);
-    }
+    SizeChance.applySize(pokemonEntity.getPokemon(), value);
   }
 
   @NotNull @Override public String asString() {
@@ -40,16 +29,10 @@ public class ScaleProperty implements CustomPokemonProperty {
   }
 
   @Override public void apply(@NotNull Pokemon pokemon) {
-    if (CobbleSize.config.isRandomsize()) {
-      SizeChanceWithoutItem scalePokemonData = ScalePokemonData.getScalePokemonData(pokemon, this.value);
-      scalePokemonData.apply(pokemon);
-    } else {
-      pokemon.setScaleModifier(1.0f);
-    }
+    SizeChance.applySize(pokemon, value);
   }
 
   @Override public boolean matches(@NotNull Pokemon pokemon) {
-
     return true;
   }
 

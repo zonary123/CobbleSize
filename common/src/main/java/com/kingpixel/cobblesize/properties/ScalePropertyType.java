@@ -36,7 +36,7 @@ public class ScalePropertyType implements CustomPokemonPropertyType<ScalePropert
 
   @NotNull @Override public Collection<String> examples() {
     Set<String> sizes = new HashSet<>();
-    CobbleSize.config.getPokemonsizes().forEach(sizeChance -> sizes.add(String.valueOf(sizeChance.getSize())));
+    CobbleSize.config.getPokemonSizes().forEach(sizeChance -> sizes.add(String.valueOf(sizeChance.getSize())));
     return sizes;
   }
 

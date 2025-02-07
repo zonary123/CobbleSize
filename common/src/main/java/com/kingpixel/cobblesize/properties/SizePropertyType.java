@@ -1,7 +1,7 @@
 package com.kingpixel.cobblesize.properties;
 
 import com.cobblemon.mod.common.api.properties.CustomPokemonPropertyType;
-import com.kingpixel.cobblesize.CobbleSize;
+import com.kingpixel.cobblesize.Model.SizeChance;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +34,7 @@ public class SizePropertyType implements CustomPokemonPropertyType<SizeProperty>
 
   @NotNull @Override public Collection<String> examples() {
     Set<String> sizes = new HashSet<>();
-    CobbleSize.config.getPokemonsizes().forEach(sizeChance -> sizes.add(sizeChance.getId()));
+    SizeChance.getSizes(null).forEach(sizeChance -> sizes.add(sizeChance.getId()));
     sizes.add("aleatory");
     return sizes;
   }

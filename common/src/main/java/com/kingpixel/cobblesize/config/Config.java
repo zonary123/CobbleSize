@@ -1,10 +1,11 @@
 package com.kingpixel.cobblesize.config;
 
-import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.Gson;
 import com.kingpixel.cobblesize.CobbleSize;
+import com.kingpixel.cobblesize.Model.CustomSizeChance;
 import com.kingpixel.cobblesize.Model.SizeChance;
-import com.kingpixel.cobblesize.util.Utils;
+import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
@@ -21,80 +22,66 @@ import java.util.concurrent.CompletableFuture;
 @ToString
 public class Config {
   private boolean debug;
+  private List<String> commands;
   private List<SizeChance> pokemonSizes;
+  private List<CustomSizeChance> customPokemonSizes;
 
   public Config() {
     debug = false;
-    pokemonSizes = new ArrayList<>();
+    commands = new ArrayList<>();
+    commands.add("cobblesize");
+    commands.add("pokemonsize");
+    pokemonSizes = defaultSize();
+    customPokemonSizes = new ArrayList<>();
+    customPokemonSizes.add(new CustomSizeChance());
+  }
 
+  public static List<SizeChance> defaultSize() {
+    List<SizeChance> sizes = new ArrayList<>();
+    sizes.add(new SizeChance("small", 0.5f, 10));
+    sizes.add(new SizeChance("normal", 1f, 100));
+    sizes.add(new SizeChance("big", 2f, 10));
+    return sizes;
   }
 
   public void init() {
     CompletableFuture<Boolean> futureRead = Utils.readFileAsync(CobbleSize.PATH, "config.json",
       el -> {
         Gson gson = Utils.newGson();
-        Config config = gson.fromJson(el, Config.class);
+        CobbleSize.config = gson.fromJson(el, Config.class);
 
-        String data = gson.toJson(this);
+        String data = gson.toJson(CobbleSize.config);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleSize.PATH, "config.json",
           data);
         if (!futureWrite.join()) {
-          CobbleSize.LOGGER.fatal("Could not write config.json file for " + CobbleSize.MOD_NAME + ".");
+          CobbleUtils.LOGGER.fatal(CobbleSize.MOD_ID, "Could not write config.json file for " + CobbleSize.MOD_NAME +
+            ".");
         }
       });
 
     if (!futureRead.join()) {
-      CobbleSize.LOGGER.info("No config.json file found for" + CobbleSize.MOD_NAME + ". Attempting to generate one.");
+      CobbleUtils.LOGGER.info("No config.json file found for" + CobbleSize.MOD_NAME + ". Attempting to generate one.");
       Gson gson = Utils.newGson();
+      CobbleSize.config = this;
       String data = gson.toJson(this);
       CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleSize.PATH, "config.json",
         data);
 
       if (!futureWrite.join()) {
-        CobbleSize.LOGGER.fatal("Could not write config.json file for " + CobbleSize.MOD_NAME + ".");
+        CobbleUtils.LOGGER.fatal("Could not write config.json file for " + CobbleSize.MOD_NAME + ".");
       }
     }
 
   }
 
-  /**
-   * Método para obtener un tamaño de Pokémon basado en las probabilidades
-   * configuradas.
-   *
-   * @return El tamaño del Pokémon seleccionado según las probabilidades.
-   */
-  public SizeChance getRandomPokemonSize() {
-    int totalWeight = pokemonsizes.stream().mapToInt(SizeChance::getChance).sum();
-    int randomValue = Utils.RANDOM.nextInt(totalWeight) + 1;
+  public void write() {
+    Gson gson = Utils.newGson();
+    String data = gson.toJson(CobbleSize.config);
+    CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleSize.PATH, "config.json",
+      data);
 
-    int currentWeight = 0;
-    for (SizeChance sizeChance : pokemonsizes) {
-      currentWeight += sizeChance.getChance();
-      if (randomValue <= currentWeight) {
-        return sizeChance;
-      }
+    if (!futureWrite.join()) {
+      CobbleUtils.LOGGER.fatal("Could not write config.json file for " + CobbleSize.MOD_NAME + ".");
     }
-    return new SizeChance();
-  }
-
-  public boolean isBlacklisted(Pokemon pokemon) {
-    return blacklist.stream().anyMatch(pokemonData -> PokemonData.equals(pokemonData, PokemonData.from(pokemon)));
-  }
-
-  public boolean isShinyTokenBlacklisted(Pokemon pokemon) {
-    return shinytokenBlacklist.stream()
-      .anyMatch(pokemonData -> PokemonData.equals(pokemonData, PokemonData.from(pokemon)));
-  }
-
-  public boolean isLegendary(Pokemon pokemon) {
-    return legends.stream().anyMatch(pokemonData -> PokemonData.equals(pokemonData, PokemonData.from(pokemon)));
-  }
-
-  public boolean isUltraBeast(Pokemon pokemon) {
-    return ultraBeasts.stream().anyMatch(pokemonData -> PokemonData.equals(pokemonData, PokemonData.from(pokemon)));
-  }
-
-  public boolean isForm(String form) {
-    return forms.contains(form);
   }
 }

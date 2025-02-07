@@ -36,29 +36,10 @@ dependencies {
     modImplementation("dev.architectury:architectury-fabric:${project.architectury_version}")
 
     modImplementation("com.cobblemon:fabric:${property("cobblemon_version")}")
-    modImplementation("net.fabricmc:fabric-language-kotlin:${property("fabric-kotlin")}")
-    modImplementation("org.jetbrains.kotlin:kotlin-reflect:${property("kotlin")}")
-    modImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${property("kotlin")}")
-    modImplementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${property("kotlin")}")
+
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric"))
 
-    // Kyori Adventure
-    shadowCommon("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
-    shadowCommon("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
-
-
-    // Database
-    shadowCommon("org.mongodb:mongodb-driver-sync:${property("mongodb_version")}") { transitive = true }
-    shadowCommon("org.xerial:sqlite-jdbc:${property("sqlite_version")}")
-
-    // Economy Vault
-    shadowCommon("com.github.MilkBowl:VaultAPI:${property("vault_api_version")}")
-
-    // Discord
-    shadowCommon("club.minnced:discord-webhooks:${property("discord_webhooks_version")}")
-    shadowCommon("org.json:json:20210307")
-    shadowCommon("net.objecthunter:exp4j:0.4.8")
 }
 
 processResources {
@@ -102,16 +83,6 @@ shadowJar {
     exclude("org/sqlite/native/Solaris/**/*")
     exclude("kotlin/**")
     exclude("junit/**")
-    // Relocate packages
-    relocate("org.sqlite", "com.kingpixel.cobblesize.org.sqlite") {
-        exclude("org/sqlite/native/Linux-Android/**/*")
-        exclude("org/sqlite/native/Linux-Musl/**/*")
-        exclude("org/sqlite/native/FreeBSD/**/*")
-        exclude("org/sqlite/native/Mac/**/*")
-        exclude("org/sqlite/native/Solaris/**/*")
-    }
-    relocate("com.mongodb", "com.kingpixel.cobblesize.mongodb")
-    relocate("org.bson", "com.kingpixel.cobblesize.bson")
 
     // Configuración del jar sombreado
     configurations = [project.configurations.shadowCommon]
