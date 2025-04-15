@@ -2,6 +2,7 @@ package com.kingpixel.cobblesize.Model;
 
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobblesize.CobbleSize;
+import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
@@ -77,9 +78,16 @@ public class SizeChance {
 
   public static void solveSize(Pokemon pokemon) {
     SizeChance sizeChance = existSize(pokemon);
+    String size = pokemon.getPersistentData().getString(CobbleUtilsTags.SIZE_TAG);
     if (sizeChance == null) sizeChance = getRandomSize(pokemon);
     if (sizeChance.getId().equals(CobbleUtilsTags.SIZE_CUSTOM_TAG)) return;
-    if (pokemon.getScaleModifier() == sizeChance.getSize()) return;
+    if (!size.isEmpty()) {
+      if (pokemon.getScaleModifier() == sizeChance.getSize()) return;
+    }
+
+    if (CobbleSize.config.isDebug()) {
+      CobbleUtils.LOGGER.info("Pokemon: " + pokemon.getDisplayName().getString() + " - Size: " + sizeChance.getId() + " - Previous Size: " + size);
+    }
     pokemon.setScaleModifier(sizeChance.getSize());
     pokemon.getPersistentData().putString(CobbleUtilsTags.SIZE_TAG, sizeChance.getId());
   }

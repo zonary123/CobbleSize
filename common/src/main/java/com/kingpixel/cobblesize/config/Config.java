@@ -63,7 +63,7 @@ public class Config {
       CobbleUtils.LOGGER.info("No config.json file found for" + CobbleSize.MOD_NAME + ". Attempting to generate one.");
       Gson gson = Utils.newGson();
       CobbleSize.config = this;
-      String data = gson.toJson(this);
+      String data = gson.toJson(CobbleSize.config);
       CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleSize.PATH, "config.json",
         data);
 
