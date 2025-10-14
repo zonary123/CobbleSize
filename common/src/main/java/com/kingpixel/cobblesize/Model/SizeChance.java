@@ -14,7 +14,7 @@ import net.minecraft.nbt.NbtCompound;
 import java.util.List;
 
 /**
- * @author Carlos Varas Alonso - 13/06/2024 10:39
+ * @author Carlos
  */
 @Getter
 @Setter
@@ -45,16 +45,30 @@ public class SizeChance {
   private static SizeChance existSize(Pokemon pokemon) {
     NbtCompound nbt = pokemon.getPersistentData();
     String size = nbt.getString(CobbleUtilsTags.SIZE_TAG);
-    if (size.equals(CobbleUtilsTags.SIZE_CUSTOM_TAG)) return new SizeChance(CobbleUtilsTags.SIZE_CUSTOM_TAG, 1f, 100);
-    return getSizes(pokemon).stream().filter(
-      sizeChance -> sizeChance.getId().equals(size)
-    ).findFirst().orElse(null);
+
+    if (size.equals(CobbleUtilsTags.SIZE_CUSTOM_TAG)) {
+      return new SizeChance(CobbleUtilsTags.SIZE_CUSTOM_TAG, 1f, 100);
+    }
+
+    List<SizeChance> sizes = getSizes(pokemon);
+    for (SizeChance sizeChance : sizes) {
+      if (sizeChance.getId().equals(size)) {
+        return sizeChance;
+      }
+    }
+
+    return null;
   }
 
   private static SizeChance getRandomSize(Pokemon pokemon) {
     List<SizeChance> sizes = getSizes(pokemon);
-    int totalWeight = sizes.stream().mapToInt(SizeChance::getChance).sum();
-    int randomWeight = Utils.RANDOM.nextInt(totalWeight);
+
+    int totalWeight = 0;
+    for (SizeChance sizeChance : sizes) {
+      totalWeight += sizeChance.getChance();
+    }
+
+    int randomWeight = Utils.getRandom().nextInt(totalWeight);
     int currentWeight = 0;
 
     for (SizeChance sizeChance : sizes) {
@@ -63,46 +77,59 @@ public class SizeChance {
         return sizeChance;
       }
     }
+
     return new SizeChance();
   }
 
   public static List<SizeChance> getSizes(Pokemon pokemon) {
     if (pokemon == null) return CobbleSize.config.getPokemonSizes();
-    List<SizeChance> sizes;
+
     for (CustomSizeChance customPokemonSize : CobbleSize.config.getCustomPokemonSizes()) {
-      sizes = customPokemonSize.getSizes(pokemon);
+      List<SizeChance> sizes = customPokemonSize.getSizes(pokemon);
       if (sizes != null) return sizes;
     }
+
     return CobbleSize.config.getPokemonSizes();
   }
 
   public static void solveSize(Pokemon pokemon) {
     SizeChance sizeChance = existSize(pokemon);
     String size = pokemon.getPersistentData().getString(CobbleUtilsTags.SIZE_TAG);
+
     if (sizeChance == null) sizeChance = getRandomSize(pokemon);
     if (sizeChance.getId().equals(CobbleUtilsTags.SIZE_CUSTOM_TAG)) return;
-    if (!size.isEmpty()) {
-      if (pokemon.getScaleModifier() == sizeChance.getSize()) return;
-    }
+
+    if (!size.isEmpty() && pokemon.getScaleModifier() == sizeChance.getSize()) return;
 
     if (CobbleSize.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Pokemon: " + pokemon.getDisplayName().getString() + " - Size: " + sizeChance.getId() + " - Previous Size: " + size);
+      CobbleUtils.LOGGER.info("Pokemon: " + pokemon.getDisplayName().getString()
+        + " - Size: " + sizeChance.getId() + " - Previous Size: " + size);
     }
+
     pokemon.setScaleModifier(sizeChance.getSize());
     pokemon.getPersistentData().putString(CobbleUtilsTags.SIZE_TAG, sizeChance.getId());
   }
 
   public static void applySize(Pokemon pokemon, String value) {
     if (value == null) return;
+
     if (value.equals("aleatory")) {
       solveSize(pokemon);
     } else {
-      SizeChance sizeChance = getSizes(pokemon).stream().filter(
-        size -> size.getId().equals(value)
-      ).findFirst().orElse(null);
+      List<SizeChance> sizes = getSizes(pokemon);
+      SizeChance sizeChance = null;
+
+      for (SizeChance sc : sizes) {
+        if (sc.getId().equals(value)) {
+          sizeChance = sc;
+          break;
+        }
+      }
+
       if (sizeChance == null) return;
       if (sizeChance.getId().equals(CobbleUtilsTags.SIZE_CUSTOM_TAG)) return;
       if (pokemon.getScaleModifier() == sizeChance.getSize()) return;
+
       pokemon.setScaleModifier(sizeChance.getSize());
       pokemon.getPersistentData().putString(CobbleUtilsTags.SIZE_TAG, sizeChance.getId());
     }
