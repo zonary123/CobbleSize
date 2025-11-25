@@ -30,6 +30,7 @@ public class CobbleSize {
   public static void load() {
     files();
     tasks();
+    customProperties();
   }
 
 
@@ -40,22 +41,18 @@ public class CobbleSize {
 
   private static void events() {
     files();
+    tasks();
     LifecycleEvent.SERVER_LEVEL_LOAD.register(level -> server = level.getServer());
 
     CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> CommandTree.register(dispatcher, registry));
 
-    LifecycleEvent.SERVER_STARTED.register(server -> {
-      load();
-      CustomPokemonProperty.Companion.register(SizePropertyType.getInstance());
-      CustomPokemonProperty.Companion.register(ScalePropertyType.getInstance());
-    });
+    LifecycleEvent.SERVER_STARTING.register(server -> customProperties());
 
     CobblemonEvents.POKEMON_SENT_POST.subscribe(Priority.HIGHEST, evt -> {
       var pokemonEntity = evt.getPokemonEntity();
       var battleId = pokemonEntity.getBattleId();
       if (battleId == null) return Unit.INSTANCE;
       SizeChance.solveSize(pokemonEntity.getPokemon());
-
       return Unit.INSTANCE;
     });
 
@@ -70,6 +67,11 @@ public class CobbleSize {
 
   private static void tasks() {
 
+  }
+
+  private static void customProperties() {
+    CustomPokemonProperty.Companion.register(SizePropertyType.getInstance());
+    CustomPokemonProperty.Companion.register(ScalePropertyType.getInstance());
   }
 
 

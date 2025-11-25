@@ -5,10 +5,7 @@ import com.kingpixel.cobblesize.CobbleSize;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
 import com.kingpixel.cobbleutils.util.Utils;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import net.minecraft.nbt.NbtCompound;
 
 import java.util.List;
@@ -19,7 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-@Data
+@Data @EqualsAndHashCode
 public class SizeChance {
   private String id;
   private float size;
@@ -84,11 +81,12 @@ public class SizeChance {
   public static List<SizeChance> getSizes(Pokemon pokemon) {
     if (pokemon == null) return CobbleSize.config.getPokemonSizes();
 
+    var customSize = CobbleSize.config.getCustomPokemonSizes();
+    if (customSize.isEmpty()) return CobbleSize.config.getPokemonSizes();
     for (CustomSizeChance customPokemonSize : CobbleSize.config.getCustomPokemonSizes()) {
       List<SizeChance> sizes = customPokemonSize.getSizes(pokemon);
       if (sizes != null) return sizes;
     }
-
     return CobbleSize.config.getPokemonSizes();
   }
 
@@ -102,7 +100,7 @@ public class SizeChance {
     if (!size.isEmpty() && pokemon.getScaleModifier() == sizeChance.getSize()) return;
 
     if (CobbleSize.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Pokemon: " + pokemon.getDisplayName().getString()
+      CobbleUtils.LOGGER.info("Pokemon: " + pokemon.getDisplayName(false).getString()
         + " - Size: " + sizeChance.getId() + " - Previous Size: " + size);
     }
 
@@ -120,7 +118,7 @@ public class SizeChance {
       SizeChance sizeChance = null;
 
       for (SizeChance sc : sizes) {
-        if (sc.getId().equals(value)) {
+        if (sc.getId().equalsIgnoreCase(value)) {
           sizeChance = sc;
           break;
         }

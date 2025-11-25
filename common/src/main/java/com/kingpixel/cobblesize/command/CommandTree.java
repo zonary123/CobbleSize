@@ -28,7 +28,7 @@ public class CommandTree {
           .then(
             CommandManager.literal("reload")
               .executes(context -> {
-                CobbleSize.config.init();
+                CobbleSize.load();
                 return 1;
               })
           ).then(

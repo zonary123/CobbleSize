@@ -11,8 +11,11 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * @author Carlos Varas Alonso - 29/04/2024 0:14
@@ -21,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 @Data
 @ToString
 public class Config {
+  public static Set<String> examples = new HashSet<>();
   private boolean debug;
   private List<String> commands;
   private List<SizeChance> pokemonSizes;
@@ -53,25 +57,18 @@ public class Config {
         String data = gson.toJson(CobbleSize.config);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleSize.PATH, "config.json",
           data);
-        if (!futureWrite.join()) {
+        if (Boolean.FALSE.equals(futureWrite.join())) {
           CobbleUtils.LOGGER.fatal(CobbleSize.MOD_ID, "Could not write config.json file for " + CobbleSize.MOD_NAME +
             ".");
         }
       });
 
-    if (!futureRead.join()) {
+    if (Boolean.FALSE.equals(futureRead.join())) {
       CobbleUtils.LOGGER.info("No config.json file found for" + CobbleSize.MOD_NAME + ". Attempting to generate one.");
-      Gson gson = Utils.newGson();
-      CobbleSize.config = this;
-      String data = gson.toJson(CobbleSize.config);
-      CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleSize.PATH, "config.json",
-        data);
-
-      if (!futureWrite.join()) {
-        CobbleUtils.LOGGER.fatal("Could not write config.json file for " + CobbleSize.MOD_NAME + ".");
-      }
+      write();
     }
-
+    examples = CobbleSize.config.getPokemonSizes().stream().map(SizeChance::getId).collect(Collectors.toSet());
+    examples.add("aleatory");
   }
 
   public void write() {
@@ -80,7 +77,7 @@ public class Config {
     CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleSize.PATH, "config.json",
       data);
 
-    if (!futureWrite.join()) {
+    if (Boolean.FALSE.equals(futureWrite.join())) {
       CobbleUtils.LOGGER.fatal("Could not write config.json file for " + CobbleSize.MOD_NAME + ".");
     }
   }

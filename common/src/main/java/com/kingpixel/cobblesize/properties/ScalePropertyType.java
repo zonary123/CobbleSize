@@ -17,6 +17,7 @@ public class ScalePropertyType implements CustomPokemonPropertyType<ScalePropert
   private static final ScalePropertyType INSTANCE = new ScalePropertyType();
 
   public ScalePropertyType() {
+    // TODO document why this constructor is empty
   }
 
   public static ScalePropertyType getInstance() {
